@@ -1,0 +1,130 @@
+---
+title: "Luxembourg"
+author: "Miray"
+format: html
+editor: visual
+---
+
+## Luxembourg Data Project
+
+#### Required Libraries
+
+```{r}
+
+library(dplyr)
+library(purrr)
+library(readxl)
+library(stringr)
+library(janitor)
+```
+
+#### Download the Data
+
+```{r}
+# Download raw Excel
+
+
+# Data link
+url <- "https://github.com/b-rodrigues/rap4all/raw/master/datasets/vente-maison-2010-2021.xlsx"
+
+
+
+# Shortened url
+
+#url <- "https://is.gd/1vvBAc"
+
+
+```
+
+```{r}
+raw_data <- tempfile(fileext = ".xlsx")
+
+
+
+download.file(url, raw_data, method = "auto", mode = "wb")
+
+
+
+sheets <- excel_sheets(raw_data)
+
+
+
+read_clean <- function(..., sheet){
+  
+  read_excel(..., sheet = sheet) |>
+    
+    mutate(year = sheet)
+  
+}
+
+
+
+raw_data <- map(
+  
+  sheets,
+  
+  ~read_clean(raw_data,
+              
+              skip = 10,
+              
+              sheet = .) # skip first 10 rows and take all data in the sheet
+  
+) |>
+  
+  bind_rows() |>
+  
+  clean_names()
+```
+
+#### Check the data
+
+```{r}
+raw_data
+```
+
+#### Rename the french column names
+
+Some variables has their original names so we will change them into English:
+
+```{r}
+
+raw_data <- raw_data |>
+
+  rename(
+
+    locality = commune,
+
+    n_offers = nombre_doffres,
+
+    average_price_nominal_euros = prix_moyen_annonce_en_courant,
+
+    average_price_m2_nominal_euros = prix_moyen_annonce_au_m2_en_courant,
+
+    average_price_m2_nominal_euros = prix_moyen_annonce_au_m2_en_courant
+
+  ) |>
+
+  mutate(locality = str_trim(locality)) |>
+
+  select(year, locality, n_offers, starts_with("average"))
+```
+
+```{r}
+raw_data
+```
+
+```{r}
+raw_data |> 
+  filter(grepl("Luxembourg", locality)) |>
+  count(locality)
+```
+
+Here we see that Luxembourg is written in two different shape.
+
+```{r}
+raw_data |>
+  filter(grepl("P.tange", locality)) |>
+  count(locality)
+```
+
+Here we can also see that Petange is written in two different shape.
