@@ -8,7 +8,7 @@
 
 <meta name="author" content="Miray">
 
-<title>Luxembourg</title>
+<title>Luxembourg Data Project</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -80,7 +80,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Luxembourg</h1>
+<h1 class="title">Luxembourg Data Project</h1>
 </div>
 
 
@@ -210,35 +210,44 @@ Attaching package: 'janitor'</code></pre>
 • `*` -&gt; `*...4`</code></pre>
 </div>
 </div>
+<p>Here we skip the first 10 rows and then take all the data in the sheet because the data in the excel were in a dashboard-like shape so that humans can read it more easily, containing a definition of the data etc.</p>
+<p>By skipping the first 10 rows, we obtain the data directly, now machines - here we can say that machine is R in this situation - can read and perform calculations on the data.</p>
 </section>
 <section id="check-the-data" class="level4">
 <h4 class="anchored" data-anchor-id="check-the-data">Check the data</h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>raw_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(raw_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1,343 × 9
-   commune    nombre_doffres prix_moyen_annonce_e…¹ prix_moyen_annonce_a…² year 
-   &lt;chr&gt;               &lt;dbl&gt; &lt;chr&gt;                  &lt;chr&gt;                  &lt;chr&gt;
- 1 Bascharage            192 593698.31000000006     3603.57                2010 
- 2 Beaufort              266 461160.29              2902.76                2010 
- 3 Bech                   65 621760.22              3280.51                2010 
- 4 Beckerich             176 444498.68              2867.88                2010 
- 5 Berdorf               111 504040.85              3055.99                2010 
- 6 Bertrange             264 795338.87              4266.46                2010 
- 7 Bettembou…            304 555628.29              3343.22                2010 
- 8 Bettendorf             94 495074.38              3235.26                2010 
- 9 Betzdorf              119 625914.47              3343.05                2010 
-10 Bissen                 70 516465.57              3321.65                2010 
-# ℹ 1,333 more rows
-# ℹ abbreviated names: ¹​prix_moyen_annonce_en_courant,
-#   ²​prix_moyen_annonce_au_m2_en_courant
-# ℹ 4 more variables: bech &lt;chr&gt;, x12 &lt;dbl&gt;, x3 &lt;chr&gt;, x4 &lt;chr&gt;</code></pre>
+<pre><code>   commune          nombre_doffres    prix_moyen_annonce_en_courant
+ Length:1343        Min.   :    0.0   Length:1343                  
+ Class :character   1st Qu.:   50.0   Class :character             
+ Mode  :character   Median :   91.0   Mode  :character             
+                    Mean   :  255.4                                
+                    3rd Qu.:  152.0                                
+                    Max.   :21253.0                                
+                    NA's   :161                                    
+ prix_moyen_annonce_au_m2_en_courant     year               bech          
+ Length:1343                         Length:1343        Length:1343       
+ Class :character                    Class :character   Class :character  
+ Mode  :character                    Mode  :character   Mode  :character  
+                                                                          
+                                                                          
+                                                                          
+                                                                          
+      x12               x3                 x4           
+ Min.   :    0.0   Length:1343        Length:1343       
+ 1st Qu.:   27.0   Class :character   Class :character  
+ Median :   58.0   Mode  :character   Mode  :character  
+ Mean   :  235.7                                        
+ 3rd Qu.:  132.0                                        
+ Max.   :11925.0                                        
+ NA's   :1242                                           </code></pre>
 </div>
 </div>
 </section>
 <section id="rename-the-french-column-names" class="level4">
-<h4 class="anchored" data-anchor-id="rename-the-french-column-names">Rename the french column names</h4>
-<p>Some variables has their original names so we will change them into English:</p>
+<h4 class="anchored" data-anchor-id="rename-the-french-column-names">Rename the French column names</h4>
+<p>Some variables has their names in French. We will change them into English so that it makes more sense for us:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>raw_data <span class="ot">&lt;-</span> raw_data <span class="sc">|&gt;</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -280,6 +289,7 @@ Attaching package: 'janitor'</code></pre>
 # ℹ abbreviated name: ¹​average_price_m2_nominal_euros</code></pre>
 </div>
 </div>
+<p>From investigating the raw data, we see some problems with the data we have to fix before making any analysis.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>raw_data <span class="sc">|&gt;</span> </span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">grepl</span>(<span class="st">"Luxembourg"</span>, locality)) <span class="sc">|&gt;</span></span>
@@ -305,7 +315,32 @@ Attaching package: 'janitor'</code></pre>
 2 Pétange      2</code></pre>
 </div>
 </div>
-<p>Here we can also see that Petange is written in two different shape.</p>
+<p>Here we can also see that Petange is written in two different shape. Moreover, average_price_nominal_euros and average_price_m2_nominal_euros columns are in character form, but they should have been in numeric form. To have the data in a proper shape, we have to mutate this values:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>raw_data <span class="ot">&lt;-</span> raw_data <span class="sc">|&gt;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">locality =</span> <span class="fu">ifelse</span>(<span class="fu">grepl</span>(<span class="st">"Luxembourg-Ville"</span>, locality),</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Luxembourg"</span>,</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>                      locality),</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">locality =</span> <span class="fu">ifelse</span>(<span class="fu">grepl</span>(<span class="st">"P.tange"</span>, locality),</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>                           <span class="st">"Pétange"</span>,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>                           locality)</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">|&gt;</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">starts_with</span>(<span class="st">"average"</span>),</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>         as.numeric))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: There were 2 warnings in `mutate()`.
+The first warning was:
+ℹ In argument: `across(starts_with("average"), as.numeric)`.
+Caused by warning:
+! NAs introduced by coercion
+ℹ Run `dplyr::last_dplyr_warnings()` to see the 1 remaining warning.</code></pre>
+</div>
+</div>
+<p>After mutation, we see that we receive a warning message saying that some values were turned into NA. This could be because we have non-numerical values in our average_price_nominal_euros and average_price_m2_nominal_euros columns.</p>
+<p>When we check our original data set in excel, we see that we actually have some rows have ” * ” instead of values:</p>
+<p><img src="https://raps-with-r.dev/images/obs_hab_xlsx_missing.png" class="img-fluid"></p>
+<p>We have to remove this values before any analysis.</p>
 </section>
 </section>
 

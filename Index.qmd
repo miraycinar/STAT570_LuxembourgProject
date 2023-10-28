@@ -1,5 +1,5 @@
 ---
-title: "Luxembourg"
+title: "Luxembourg Data Project"
 author: "Miray"
 format: html
 editor: visual
@@ -76,15 +76,19 @@ raw_data <- map(
   clean_names()
 ```
 
+Here we skip the first 10 rows and then take all the data in the sheet because the data in the excel were in a dashboard-like shape so that humans can read it more easily, containing a definition of the data etc.
+
+By skipping the first 10 rows, we obtain the data directly, now machines - here we can say that machine is R in this situation - can read and perform calculations on the data.
+
 #### Check the data
 
 ```{r}
-raw_data
+summary(raw_data)
 ```
 
-#### Rename the french column names
+#### Rename the French column names
 
-Some variables has their original names so we will change them into English:
+Some variables has their names in French. We will change them into English so that it makes more sense for us:
 
 ```{r}
 
@@ -113,6 +117,8 @@ raw_data <- raw_data |>
 raw_data
 ```
 
+From investigating the raw data, we see some problems with the data we have to fix before making any analysis.
+
 ```{r}
 raw_data |> 
   filter(grepl("Luxembourg", locality)) |>
@@ -127,4 +133,26 @@ raw_data |>
   count(locality)
 ```
 
-Here we can also see that Petange is written in two different shape.
+Here we can also see that Petange is written in two different shape. Moreover, average_price_nominal_euros and average_price_m2_nominal_euros columns are in character form, but they should have been in numeric form. To have the data in a proper shape, we have to mutate this values:
+
+```{r}
+raw_data <- raw_data |>
+  mutate(
+    locality = ifelse(grepl("Luxembourg-Ville", locality),
+                      "Luxembourg",
+                      locality),
+         locality = ifelse(grepl("P.tange", locality),
+                           "Pétange",
+                           locality)
+         ) |>
+  mutate(across(starts_with("average"),
+         as.numeric))
+```
+
+After mutation, we see that we receive a warning message saying that some values were turned into NA. This could be because we have non-numerical values in our average_price_nominal_euros and average_price_m2_nominal_euros columns.
+
+When we check our original data set in excel, we see that we actually have some rows have " \* " instead of values:
+
+![](https://raps-with-r.dev/images/obs_hab_xlsx_missing.png)
+
+We have to remove this values before any analysis.
