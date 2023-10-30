@@ -156,3 +156,412 @@ When we check our original data set in excel, we see that we actually have some 
 ![](https://raps-with-r.dev/images/obs_hab_xlsx_missing.png)
 
 We have to remove this values before any analysis.
+
+As can be seen from the raw data, we have some NA values and for the locality we do not have the name of the locality, so we can delete the missing localities.
+
+Moreover, we have total d'offres which means the total offers from every locality. Also we can delete this , or we can put this row not to lose information to another data frame.
+
+Last row of this data frame tells the source of the data, we can also remove this row. Now we are going to form 2 new data sets from the current one. First one will include data on communes, and the second one will include data on national prices.
+
+But, first we need the do the removing process that we mentioned before.
+
+First, removing the source:
+
+```{r}
+raw_data <- raw_data |>
+
+  filter(!grepl("Source", locality))
+
+```
+
+To form the first data frame, which is about data on communes.
+
+```{r}
+commune_level_data <- raw_data |>
+
+  filter(!grepl("nationale|offres", locality),
+
+         !is.na(locality))
+
+```
+
+And secondly, we create the data for the data on national prices.
+
+```{r}
+country_level <- raw_data |>
+
+  filter(grepl("nationale", locality)) |>
+
+  select(-n_offers)
+
+offers_country <- raw_data |>
+
+  filter(grepl("Total d.offres", locality)) |>
+
+  select(year, n_offers)
+
+country_level_data <- full_join(country_level, offers_country) |>
+
+  select(year, locality, n_offers, everything()) |>
+
+  mutate(locality = "Grand-Duchy of Luxembourg")
+
+```
+
+Now resulting we got the clean data, but to be sure we get all the communes for Luxemburg we need to check the communes list using the wikipedia.
+
+In case if someone decides to modify the web page in the future, we save the web page to github.
+
+To get and save the list of the communes fro the Luxemburg we use the code below:
+
+```{r}
+current_communes <- "https://is.gd/lux_communes" |>
+
+  rvest::read_html() |>
+
+  rvest::html_table() |>
+
+  purrr::pluck(2) |>
+
+  janitor::clean_names() |>
+
+  dplyr::filter(name_2 != "Name") |>
+
+  dplyr::rename(commune = name_2) |>
+
+  dplyr::mutate(commune = stringr::str_remove(commune, " .$"))
+```
+
+For getting the scraped table from the wikipedia we used rvest.
+
+rvest::html_table() function gives the list of the tables using the wikipedia,and then, we use purr::pluck() to save the second table from the site.
+
+Janitor::clean_names() we use this function for re-writing the names that can be used in R, and for the functions that are in the package dplyr, used for more cleaning and changing the names.
+
+Now after all the steps we did above, we can control whether we have all the communes:
+
+```{r}
+setdiff(unique(commune_level_data$locality),
+
+        current_communes$commune)
+
+```
+
+We can see that there is a difference between the commune_level_data and current_communes.
+
+Some communes does not in the current_communes.
+
+It's because some reasons, first reason is that there is a difference in the spelling of the communes.
+
+And the second reason is some communes merged into new ones since 2010.
+
+To solve this problem, we should get the list of all the existing communes from 2010 and after,and then we can fix the spelling.
+
+Now we use the list from the wikipedia and do the steps above again.
+
+```{r}
+former_communes <- "https://is.gd/lux_former_communes" |>
+
+  rvest::read_html() |>
+
+  rvest::html_table() |>
+
+  purrr::pluck(3) |>
+
+  janitor::clean_names() |>
+
+  dplyr::filter(year_dissolved > 2009)
+
+former_communes
+
+```
+
+From the tibble, we can see that some communes have merged into new ones.
+
+And, we can combine the list of the current and former communes while fixing the spellings.
+
+```{r}
+communes <- unique(c(former_communes$name,
+
+                     current_communes$commune))
+
+```
+
+We need to rename some communes
+
+Different spelling of these communes between wikipedia and the data
+
+```{r}
+communes[which(communes == "Clemency")] <- "Clémency"
+
+communes[which(communes == "Redange")] <- "Redange-sur-Attert"
+
+communes[which(communes == "Erpeldange-sur-Sûre")] <- "Erpeldange"
+
+communes[which(communes == "Luxembourg City")] <- "Luxembourg"
+
+communes[which(communes == "Käerjeng")] <- "Kaerjeng"
+
+communes[which(communes == "Petange")] <- "Pétange"
+```
+
+To test it, we run this code.
+
+```{r}
+setdiff(unique(commune_level_data$locality),
+
+        communes)
+
+```
+
+With this code we check that if there is any commune that is not accounted for, and we get the 0, so we are good to go.
+
+Saving the data
+
+First we create the folder called datasets
+
+```{r}
+write.csv(commune_level_data, "datasets/commune_level_data.csv", row.names = TRUE)
+
+write.csv(country_level_data, "datasets/country_level_data.csv", row.names = TRUE)
+
+```
+
+ANALYSING THE DATA
+
+First we will find a Laspeyeres price index.
+
+With this price index we can understand the change in the time.
+
+We can compare the price, did it increase or decrease and how much is the difference based on the relative year which is 2010.
+
+To compute that we will use the prices at certain year and will divide it by the prices in 2010.
+
+We load the data sets.
+
+```{r}
+write.csv(commune_level_data, "datasets/commune_level_data.csv", row.names = TRUE)
+
+write.csv(country_level_data, "datasets/country_level_data.csv", row.names = TRUE)
+
+```
+
+We need this packages :
+
+```{r}
+library(dplyr)
+
+library(ggplot2)
+
+library(purrr)
+
+library(tidyr)
+```
+
+Data sets:
+
+```{r}
+commune_level_data <- read.csv("datasets/commune_level_data.csv")
+
+country_level_data <- read.csv("datasets/country_level_data.csv")
+```
+
+Now we are going the compute the laspeyeres index like we mentioned:
+
+```{r}
+commune_level_data <- commune_level_data %>%
+
+  group_by(locality) %>%
+
+  mutate(p0 = ifelse(year == "2010", average_price_nominal_euros, NA)) %>%
+
+  fill(p0, .direction = "down") %>%
+
+  mutate(p0_m2 = ifelse(year == "2010", average_price_m2_nominal_euros, NA)) %>%
+
+  fill(p0_m2, .direction = "down") %>%
+
+  ungroup() %>%
+
+  mutate(pl = average_price_nominal_euros/p0*100,
+
+         pl_m2 = average_price_m2_nominal_euros/p0_m2*100)
+```
+
+Now we will find it for the whole country:
+
+```{r}
+country_level_data <- country_level_data %>%
+
+  mutate(p0 = ifelse(year == "2010", average_price_nominal_euros, NA)) %>%
+
+  fill(p0, .direction = "down") %>%
+
+  mutate(p0_m2 = ifelse(year == "2010", average_price_m2_nominal_euros, NA)) %>%
+
+  fill(p0_m2, .direction = "down") %>%
+
+  mutate(pl = average_price_nominal_euros/p0*100,
+
+         pl_m2 = average_price_m2_nominal_euros/p0_m2*100)
+```
+
+Plotting:
+
+Creating a plot for 5 communes and comparing the price evolution in the communes, to the national price evolution.
+
+Starting with listing the communes
+
+```{r}
+communes <- c("Luxembourg",
+
+              "Esch-sur-Alzette",
+
+              "Mamer",
+
+              "Schengen",
+
+              "Wincrange")
+```
+
+For Luxembourg:
+
+```{r}
+filtered_data <- commune_level_data %>%
+
+  filter(locality == communes[1])
+
+data_to_plot <- bind_rows(
+
+  country_level_data,
+
+  filtered_data
+
+)
+
+lux_plot <- ggplot(data_to_plot) +
+
+  geom_line(aes(y = pl_m2,
+
+                x = year,
+
+                group = locality,
+
+                colour = locality))
+
+lux_plot
+```
+
+\# For Esch sur Alzette
+
+```{r}
+filtered_data <- commune_level_data %>%
+
+  filter(locality == communes[2])
+
+data_to_plot <- bind_rows(
+
+  country_level_data,
+
+  filtered_data
+
+)
+
+esch_plot <- ggplot(data_to_plot) +
+
+  geom_line(aes(y = pl_m2,
+
+                x = year,
+
+                group = locality,
+
+                colour = locality))
+
+esch_plot
+```
+
+For Mamer
+
+```{r}
+filtered_data <- commune_level_data %>%
+
+  filter(locality == communes[3])
+
+data_to_plot <- bind_rows(
+
+  country_level_data,
+
+  filtered_data
+
+)
+
+mamer_plot <- ggplot(data_to_plot) +
+
+  geom_line(aes(y = pl_m2,
+
+                x = year,
+
+                group = locality,
+
+                colour = locality))
+
+mamer_plot
+```
+
+\# For Schengen
+
+```{r}
+filtered_data <- commune_level_data %>%
+
+  filter(locality == communes[4])
+
+data_to_plot <- bind_rows(
+
+  country_level_data,
+
+  filtered_data
+
+)
+
+schengen_plot <- ggplot(data_to_plot) +
+
+  geom_line(aes(y = pl_m2,
+
+                x = year,
+
+                group = locality,
+
+                colour = locality))
+
+schengen_plot
+```
+
+For Wincrange
+
+```{r}
+filtered_data <- commune_level_data %>%
+
+  filter(locality == communes[5])
+
+data_to_plot <- bind_rows(
+
+  country_level_data,
+
+  filtered_data
+
+)
+
+wincrange_plot <- ggplot(data_to_plot) +
+
+  geom_line(aes(y = pl_m2,
+
+                x = year,
+
+                group = locality,
+
+                colour = locality))
+
+wincrange_plot
+```
+
+Now with this process we selected 5 communes and with the plots we can see the evolution of prices compared to the national average.
