@@ -321,9 +321,9 @@ Saving the data
 First we create the folder called datasets
 
 ```{r}
-write.csv(commune_level_data, "datasets/commune_level_data.csv", row.names = TRUE)
+#write.csv(commune_level_data, "datasets/commune_level_data.csv", row.names = TRUE)
 
-write.csv(country_level_data, "datasets/country_level_data.csv", row.names = TRUE)
+#write.csv(country_level_data, "datasets/country_level_data.csv", row.names = TRUE)
 
 ```
 
@@ -340,9 +340,9 @@ To compute that we will use the prices at certain year and will divide it by the
 We load the data sets.
 
 ```{r}
-write.csv(commune_level_data, "datasets/commune_level_data.csv", row.names = TRUE)
+#write.csv(commune_level_data, "datasets/commune_level_data.csv", row.names = TRUE)
 
-write.csv(country_level_data, "datasets/country_level_data.csv", row.names = TRUE)
+#write.csv(country_level_data, "datasets/country_level_data.csv", row.names = TRUE)
 
 ```
 
@@ -361,9 +361,9 @@ library(tidyr)
 Data sets:
 
 ```{r}
-commune_level_data <- read.csv("datasets/commune_level_data.csv")
+#commune_level_data <- read.csv("datasets/commune_level_data.csv")
 
-country_level_data <- read.csv("datasets/country_level_data.csv")
+#country_level_data <- read.csv("datasets/country_level_data.csv")
 ```
 
 Now we are going the compute the laspeyeres index like we mentioned:
@@ -408,20 +408,18 @@ country_level_data <- country_level_data %>%
 
 Plotting:
 
-Creating a plot for 5 communes and comparing the price evolution in the communes, to the national price evolution.
+Creating a plot for 7 communes and comparing the price evolution in the communes, to the national price evolution.
 
 Starting with listing the communes
 
 ```{r}
 communes <- c("Luxembourg",
-
               "Esch-sur-Alzette",
-
               "Mamer",
-
               "Schengen",
-
-              "Wincrange")
+              "Wincrange",
+              "Bertrange",
+              "Wiltz")
 ```
 
 For Luxembourg:
@@ -452,7 +450,7 @@ lux_plot <- ggplot(data_to_plot) +
 lux_plot
 ```
 
-\# For Esch sur Alzette
+For Esch sur Alzette
 
 ```{r}
 filtered_data <- commune_level_data %>%
@@ -508,7 +506,7 @@ mamer_plot <- ggplot(data_to_plot) +
 mamer_plot
 ```
 
-\# For Schengen
+For Schengen
 
 ```{r}
 filtered_data <- commune_level_data %>%
@@ -565,3 +563,93 @@ wincrange_plot
 ```
 
 Now with this process we selected 5 communes and with the plots we can see the evolution of prices compared to the national average.
+
+Bertrange second most expensive plot:
+
+```{r}
+filtered_data <- commune_level_data %>%
+
+  filter(locality == communes[6])
+
+data_to_plot <- bind_rows(
+
+  country_level_data,
+
+  filtered_data
+
+)
+
+bertrange_plot <- ggplot(data_to_plot) +
+
+  geom_line(aes(y = pl_m2,
+
+                x = year,
+
+                group = locality,
+
+                colour = locality))
+
+bertrange_plot
+
+```
+
+Wiltz least expensive amongst all communes.
+
+```{r}
+filtered_data <- commune_level_data %>%
+
+  filter(locality == communes[7])
+
+data_to_plot <- bind_rows(
+
+  country_level_data,
+
+  filtered_data
+
+)
+
+wiltz_plot <- ggplot(data_to_plot) +
+
+  geom_line(aes(y = pl_m2,
+
+                x = year,
+
+                group = locality,
+
+                colour = locality))
+
+wiltz_plot
+
+```
+
+Most expensive commune Luxemburg and least expensive one Wiltz.
+
+```{r}
+filtered_dataWiltz <- commune_level_data %>%
+
+  filter(locality == "Wiltz")
+
+filtered_dataLuxembourg <- commune_level_data %>%
+
+  filter(locality == "Luxembourg")
+
+data_to_plot <- bind_rows(
+
+  filtered_dataLuxembourg,
+
+  filtered_dataWiltz
+
+)
+
+mixplot<- ggplot(data_to_plot) +
+
+  geom_line(aes(y = pl_m2,
+
+                x = year,
+
+                group = locality,
+
+                colour = locality))
+
+mixplot
+```
