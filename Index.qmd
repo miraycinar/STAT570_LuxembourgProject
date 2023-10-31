@@ -5,9 +5,16 @@ format: html
 editor: visual
 ---
 
-## Luxembourg Data Project
+# Luxembourg Data Project
 
 **Luxembourg**, officially the **Grand Duchy of Luxembourg**, is a small landlocked country in Western Europe. It borders Belgium to the west and north, Germany to the east, and France to the south.
+
+### 
+Characteristics of the Luxembourg real estate market: Real estate supply does not meet demand 
+
+The Luxembourg real estate market is clearly lacking supply compared to demand. In fact, we note the permanent presence of construction sites for collective works or individual houses. However, the emergence and development of new districts (Cloche d'Or, Kirchberg, Belval,\...) are still not enough to meet the demand for buying and renting real estate.
+
+Supply is still not enough to meet demand and this growth in demand will not stop as the population continues to increase significantly. New workers continue to arrive, attracted by great career prospects and compensation, Statec still reports a need for 5,600 to 7,500 additional housing units per year. However, the real estate market seems to have paused since late 2022.
 
 In this project we are going to import the data that is compiled by the Housing Observatory (*Observatoire de l\'Habitat*). One thing that should be careful regarding this data is, to be aware of the fact that due to inflation, we have to convert nominal prices to real prices so that we can compare actual differences through the years.
 
@@ -640,7 +647,7 @@ wiltz_plot
 
 ```
 
-Most expensive commune Luxemburg and least expensive one Wiltz.
+Most expensive commune Luxembourg and least expensive one Wiltz.
 
 ```{r}
 filtered_dataWiltz <- commune_level_data %>%
@@ -673,3 +680,74 @@ mixplot<- ggplot(data_to_plot) +
 
 mixplot
 ```
+
+Finally, bring all cities together in one plot so that compare all of them:
+
+First we need to filter the cities that we are interested in:
+
+```{r}
+filtered_dataLux <- commune_level_data %>%
+  
+  filter(locality == "Luxembourg")
+
+filtered_dataESA <- commune_level_data %>%
+  
+  filter(locality == "Esch-sur-Alzette")
+
+filtered_dataMamer <- commune_level_data %>%
+  
+  filter(locality == "Mamer")
+
+filtered_dataSchengen <- commune_level_data %>%
+  
+  filter(locality == "Schengen")
+
+filtered_dataWincrange <- commune_level_data %>%
+  
+  filter(locality == "Wincrange")
+
+filtered_dataBertrange <- commune_level_data %>%
+  
+  filter(locality == "Bertrange")
+
+filtered_dataWiltz <- commune_level_data %>%
+  
+  filter(locality == "Wiltz")
+
+filtered_data <- rbind(filtered_dataLux,filtered_dataESA, filtered_dataMamer, filtered_dataSchengen,
+                       filtered_dataWincrange, filtered_dataBertrange, filtered_dataWiltz)
+
+
+```
+
+Then check the plot:
+
+```{r}
+data_to_plot <- bind_rows(
+  
+  country_level_data,
+  
+  filtered_data
+  
+)
+
+lux_plot <- ggplot(data_to_plot) +
+  
+  geom_line(aes(y = pl_m2,
+                
+                x = year,
+                
+                group = locality,
+                
+                colour = locality)) +
+  labs(title = "Country Average vs. 7 Cities", x = "Years") +
+  theme_classic()
+
+lux_plot
+```
+
+#### References
+
+Rodrigues, B. (2023). *Building reproducible analytical pipelines with R*. Bruno Rodrigues.
+
+*Real estate market and prices: What to expect?*. Just Arrived Luxembourg. (2023, July 5). https://www.justarrived.lu/en/housing-of-luxembourg/real-estate-market-and-prices-in-luxembourg/
