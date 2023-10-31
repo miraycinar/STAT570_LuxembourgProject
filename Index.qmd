@@ -1,6 +1,6 @@
 ---
 title: "Luxembourg Data Project"
-author: "Miray"
+author: "Miray & Ecenaz"
 format: html
 editor: visual
 ---
@@ -449,7 +449,9 @@ lux_plot <- ggplot(data_to_plot) +
 
                 group = locality,
 
-                colour = locality))
+                colour = locality)) +
+  labs(title = "Country Average vs. Luxembourg", x = "Years") +
+  theme_classic()
 
 lux_plot
 ```
@@ -477,7 +479,9 @@ esch_plot <- ggplot(data_to_plot) +
 
                 group = locality,
 
-                colour = locality))
+                colour = locality)) +
+  labs(title = "Country Average vs. Esch sur Alzette", x = "Years") +
+  theme_classic()
 
 esch_plot
 ```
@@ -505,7 +509,9 @@ mamer_plot <- ggplot(data_to_plot) +
 
                 group = locality,
 
-                colour = locality))
+                colour = locality)) +
+  labs(title = "Country Average vs. Mamer", x = "Years") +
+  theme_classic()
 
 mamer_plot
 ```
@@ -533,7 +539,9 @@ schengen_plot <- ggplot(data_to_plot) +
 
                 group = locality,
 
-                colour = locality))
+                colour = locality)) +
+  labs(title = "Country Average vs. Schengen", x = "Years") +
+  theme_classic()
 
 schengen_plot
 ```
@@ -561,7 +569,9 @@ wincrange_plot <- ggplot(data_to_plot) +
 
                 group = locality,
 
-                colour = locality))
+                colour = locality)) +
+  labs(title = "Country Average vs. Wincrange", x = "Years") +
+  theme_classic()
 
 wincrange_plot
 ```
@@ -591,7 +601,9 @@ bertrange_plot <- ggplot(data_to_plot) +
 
                 group = locality,
 
-                colour = locality))
+                colour = locality)) +
+  labs(title = "Country Average vs. Betrange", x = "Years") +
+  theme_classic()
 
 bertrange_plot
 
@@ -620,7 +632,9 @@ wiltz_plot <- ggplot(data_to_plot) +
 
                 group = locality,
 
-                colour = locality))
+                colour = locality)) +
+  labs(title = "Country Average vs. Wiltz", x = "Years") +
+  theme_classic()
 
 wiltz_plot
 
@@ -653,7 +667,9 @@ mixplot<- ggplot(data_to_plot) +
 
                 group = locality,
 
-                colour = locality))
+                colour = locality)) + 
+  labs(title = "Luxembourg vs. Wiltz", x = "Years") +
+  theme_classic()
 
 mixplot
 ```
