@@ -7,6 +7,10 @@ editor: visual
 
 ## Luxembourg Data Project
 
+**Luxembourg**, officially the **Grand Duchy of Luxembourg**, is a small landlocked country in Western Europe. It borders Belgium to the west and north, Germany to the east, and France to the south.
+
+In this project we are going to import the data that is compiled by the Housing Observatory (*Observatoire de l\'Habitat*). One thing that should be careful regarding this data is, to be aware of the fact that due to inflation, we have to convert nominal prices to real prices so that we can compare actual differences through the years.
+
 #### Required Libraries
 
 ```{r}
